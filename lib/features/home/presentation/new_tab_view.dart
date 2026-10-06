@@ -4,8 +4,6 @@ import 'package:axomai_browser_mobile/features/ai_assistant/presentation/ai_assi
 import 'package:axomai_browser_mobile/features/browser/controllers/search_engine_controller.dart';
 import 'package:axomai_browser_mobile/features/home/controllers/home_feed_controller.dart';
 import 'package:axomai_browser_mobile/features/home/presentation/widgets/assam_news_section.dart';
-import 'package:axomai_browser_mobile/features/home/presentation/widgets/quick_links_grid.dart';
-import 'package:axomai_browser_mobile/features/home/presentation/widgets/weather_card.dart';
 
 /// Chrome & JioSphere inspired modern New Tab Page.
 class NewTabView extends ConsumerWidget {
@@ -173,12 +171,6 @@ class NewTabView extends ConsumerWidget {
               ),
             ),
           ),
-
-          // Weather Card
-          const SliverToBoxAdapter(child: WeatherCard()),
-
-          // Quick Links 4x2 Grid
-          SliverToBoxAdapter(child: QuickLinksGrid(onOpenUrl: onNavigate)),
 
           // Assam Discover / Headlines Section
           SliverToBoxAdapter(
