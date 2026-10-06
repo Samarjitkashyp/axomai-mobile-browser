@@ -58,6 +58,13 @@ class BrowserController extends StateNotifier<BrowserState> {
     await webViewController?.loadUrl(urlRequest: URLRequest(url: uri));
   }
 
+  Future<void> goHome() async {
+    state = state.copyWith(url: '', title: 'New Tab');
+    await webViewController?.loadUrl(
+      urlRequest: URLRequest(url: WebUri('about:blank')),
+    );
+  }
+
   Future<void> reload() async {
     await webViewController?.reload();
   }
