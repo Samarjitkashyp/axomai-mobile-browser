@@ -4,9 +4,11 @@ import 'package:axomai_browser_mobile/core/constants/app_constants.dart';
 import 'package:axomai_browser_mobile/core/localization/locale_controller.dart';
 import 'package:axomai_browser_mobile/core/theme/app_theme_type.dart';
 import 'package:axomai_browser_mobile/core/theme/theme_controller.dart';
+import 'package:axomai_browser_mobile/features/browser/controllers/search_engine_controller.dart';
+import 'package:axomai_browser_mobile/features/browser/domain/search_engine.dart';
 import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
 
-/// Settings screen allowing theme and language customization.
+/// Settings screen allowing theme, language, and search engine customization.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -14,6 +16,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeState = ref.watch(themeControllerProvider);
     final currentLocale = ref.watch(localeControllerProvider);
+    final currentSearchEngine = ref.watch(searchEngineControllerProvider);
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -38,6 +41,10 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           _buildThemePresetsGrid(ref, themeState),
+          const SizedBox(height: 24),
+          _buildSectionHeader(theme, Icons.search, 'Search Engine'),
+          const SizedBox(height: 12),
+          _buildSearchEngineSelector(context, ref, currentSearchEngine),
           const SizedBox(height: 24),
           _buildSectionHeader(
             theme,
@@ -161,6 +168,41 @@ class SettingsScreen extends ConsumerWidget {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildSearchEngineSelector(
+    BuildContext context,
+    WidgetRef ref,
+    SearchEngine currentEngine,
+  ) {
+    final theme = Theme.of(context);
+
+    return Card(
+      child: Column(
+        children: SearchEngine.values.map((engine) {
+          final isSelected = currentEngine == engine;
+          return ListTile(
+            leading: Icon(
+              isSelected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              color: isSelected ? theme.colorScheme.primary : null,
+            ),
+            title: Text(
+              engine.displayName,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            onTap: () {
+              ref
+                  .read(searchEngineControllerProvider.notifier)
+                  .setSearchEngine(engine);
+            },
+          );
+        }).toList(),
+      ),
     );
   }
 
