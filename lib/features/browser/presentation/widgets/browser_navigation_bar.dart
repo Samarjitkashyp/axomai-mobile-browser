@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:axomai_browser_mobile/features/browser/controllers/browser_controller.dart';
 import 'package:axomai_browser_mobile/features/tabs/controllers/tabs_controller.dart';
 
-/// Bottom navigation toolbar for essential browser controls and tab management.
+/// Bottom navigation toolbar for essential browser controls, tabs, and library.
 class BrowserNavigationBar extends ConsumerWidget {
   const BrowserNavigationBar({super.key});
 
@@ -84,11 +84,9 @@ class BrowserNavigationBar extends ConsumerWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.find_in_page_outlined, size: 20),
-                tooltip: 'Find in Page',
-                onPressed: browserState.url.isNotEmpty
-                    ? () => controller.openFindInPage()
-                    : null,
+                icon: const Icon(Icons.collections_bookmark_outlined, size: 20),
+                tooltip: 'Library',
+                onPressed: () => context.push('/library'),
               ),
               IconButton(
                 icon: const Icon(Icons.share_outlined, size: 20),

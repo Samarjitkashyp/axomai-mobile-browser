@@ -7,6 +7,7 @@ import 'package:axomai_browser_mobile/features/browser/controllers/browser_contr
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/address_bar.dart';
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/browser_navigation_bar.dart';
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/find_in_page_bar.dart';
+import 'package:axomai_browser_mobile/features/library/controllers/history_controller.dart';
 import 'package:axomai_browser_mobile/features/tabs/controllers/tabs_controller.dart';
 import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
 
@@ -137,6 +138,15 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
       onLoadStop: (webController, url) {
         controller.onUrlChanged(url);
         _syncTabUrlAndTitle(url?.toString(), null);
+        if (url != null) {
+          ref
+              .read(historyControllerProvider.notifier)
+              .addVisit(
+                url: url.toString(),
+                title: ref.read(browserControllerProvider).title,
+                isIncognito: isIncognito,
+              );
+        }
       },
       onProgressChanged: (webController, progress) {
         controller.onProgressChanged(progress);

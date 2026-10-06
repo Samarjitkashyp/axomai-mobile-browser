@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:axomai_browser_mobile/features/browser/controllers/browser_controller.dart';
+import 'package:axomai_browser_mobile/features/library/controllers/bookmarks_controller.dart';
 import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
 
 /// Top Address / Omnibox bar supporting search or direct URL navigation.
@@ -95,6 +96,7 @@ class _AddressBarState extends ConsumerState<AddressBar> {
   @override
   Widget build(BuildContext context) {
     final browserState = ref.watch(browserControllerProvider);
+    final bookmarksState = ref.watch(bookmarksControllerProvider);
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
@@ -103,6 +105,9 @@ class _AddressBarState extends ConsumerState<AddressBar> {
     }
 
     final isHttps = browserState.isSecure && browserState.url.isNotEmpty;
+    final isBookmarked = bookmarksState.bookmarks.any(
+      (b) => b.url.trim() == browserState.url.trim(),
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -169,6 +174,33 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                 onSubmitted: _submit,
               ),
             ),
+            if (browserState.url.isNotEmpty && !_isEditing)
+              IconButton(
+                icon: Icon(
+                  isBookmarked ? Icons.star : Icons.star_border,
+                  size: 20,
+                  color: isBookmarked ? Colors.amber : null,
+                ),
+                tooltip: isBookmarked ? 'Bookmarked' : 'Add Bookmark',
+                onPressed: () {
+                  ref
+                      .read(bookmarksControllerProvider.notifier)
+                      .toggleBookmark(
+                        title: browserState.title,
+                        url: browserState.url,
+                      );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      duration: const Duration(seconds: 1),
+                      content: Text(
+                        isBookmarked
+                            ? 'Bookmark removed'
+                            : 'Page bookmarked to Mobile Bookmarks',
+                      ),
+                    ),
+                  );
+                },
+              ),
             if (_isEditing && _textController.text.isNotEmpty)
               IconButton(
                 icon: const Icon(Icons.close, size: 18),

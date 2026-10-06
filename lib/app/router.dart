@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:axomai_browser_mobile/features/browser/presentation/browser_screen.dart';
+import 'package:axomai_browser_mobile/features/library/presentation/library_screen.dart';
 import 'package:axomai_browser_mobile/features/settings/presentation/settings_screen.dart';
 import 'package:axomai_browser_mobile/features/tabs/presentation/tab_switcher_screen.dart';
 
@@ -18,6 +19,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/tabs',
         name: 'tabs',
         builder: (context, state) => const TabSwitcherScreen(),
+      ),
+      GoRoute(
+        path: '/library',
+        name: 'library',
+        builder: (context, state) => const LibraryScreen(),
       ),
       GoRoute(
         path: '/settings',
