@@ -121,6 +121,8 @@ class _NewsArticleCard extends StatelessWidget {
                     ),
                     child: Text(
                       article.source,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onPrimaryContainer,
                         fontWeight: FontWeight.bold,
@@ -129,30 +131,39 @@ class _NewsArticleCard extends StatelessWidget {
                   ),
                   if (article.category != null &&
                       article.category!.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        article.category!,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSecondaryContainer,
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          article.category!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSecondaryContainer,
+                          ),
                         ),
                       ),
                     ),
                   ],
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   if (article.pubDate != null)
-                    Text(
-                      _formatDate(article.pubDate!),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                    Expanded(
+                      child: Text(
+                        _formatDate(article.pubDate!),
+                        textAlign: TextAlign.end,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                 ],

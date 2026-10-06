@@ -173,9 +173,14 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                 // Axom AI Assistant Sparkle Button
                 if (browserState.url.isNotEmpty && !_isEditing)
                   IconButton(
-                    icon: const Icon(Icons.auto_awesome_rounded, size: 20),
+                    icon: const Icon(Icons.auto_awesome_rounded, size: 19),
                     tooltip: 'Axom AI Assistant',
                     color: theme.colorScheme.primary,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                     onPressed: () {
                       showModalBottomSheet<void>(
                         context: context,
@@ -195,10 +200,15 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                       isBookmarked
                           ? Icons.star_rounded
                           : Icons.star_border_rounded,
-                      size: 21,
+                      size: 20,
                       color: isBookmarked ? Colors.amber : null,
                     ),
                     tooltip: isBookmarked ? 'Bookmarked' : 'Add Bookmark',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                     onPressed: () {
                       ref
                           .read(bookmarksControllerProvider.notifier)
@@ -221,6 +231,11 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                 if (_isEditing && _textController.text.isNotEmpty)
                   IconButton(
                     icon: const Icon(Icons.cancel_rounded, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                     onPressed: () {
                       _textController.clear();
                       setState(() {});
@@ -228,8 +243,13 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                   )
                 else
                   IconButton(
-                    icon: const Icon(Icons.more_vert_rounded, size: 22),
+                    icon: const Icon(Icons.more_vert_rounded, size: 21),
                     tooltip: 'More Options',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                     onPressed: () {
                       showModalBottomSheet<void>(
                         context: context,
@@ -243,6 +263,7 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                       );
                     },
                   ),
+                const SizedBox(width: 4),
               ],
             ),
           ),

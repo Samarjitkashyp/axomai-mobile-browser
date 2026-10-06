@@ -71,11 +71,15 @@ class WeatherCard extends ConsumerWidget {
                 },
               ),
               if (weather != null)
-                Text(
-                  weather.conditionText,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
+                Flexible(
+                  child: Text(
+                    weather.conditionText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
             ],
