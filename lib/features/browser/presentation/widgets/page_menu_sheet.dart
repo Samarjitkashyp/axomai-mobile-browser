@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:axomai_browser_mobile/features/ai_assistant/presentation/ai_assistant_sheet.dart';
 import 'package:axomai_browser_mobile/features/browser/controllers/browser_controller.dart';
 import 'package:axomai_browser_mobile/features/library/controllers/bookmarks_controller.dart';
 import 'package:axomai_browser_mobile/features/reader/controllers/reader_controller.dart';
@@ -90,6 +91,45 @@ class PageMenuSheet extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             const Divider(),
+
+            // Axom AI Assistant Action
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary,
+                      theme.colorScheme.tertiary,
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              title: const Text(
+                'Axom AI Assistant',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: const Text('Summarize, translate, or explain page'),
+              onTap: () {
+                Navigator.pop(context);
+                showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(28),
+                    ),
+                  ),
+                  builder: (ctx) => const AiAssistantSheet(),
+                );
+              },
+            ),
 
             // Reader Mode Action
             ListTile(
