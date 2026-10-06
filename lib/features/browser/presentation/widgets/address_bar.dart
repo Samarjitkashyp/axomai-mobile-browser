@@ -9,7 +9,9 @@ import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
 
 /// Top Address / Omnibox bar with Chrome & JioSphere style domain formatting.
 class AddressBar extends ConsumerStatefulWidget {
-  const AddressBar({super.key});
+  final FocusNode? focusNode;
+
+  const AddressBar({super.key, this.focusNode});
 
   @override
   ConsumerState<AddressBar> createState() => _AddressBarState();
@@ -17,45 +19,69 @@ class AddressBar extends ConsumerStatefulWidget {
 
 class _AddressBarState extends ConsumerState<AddressBar> {
   late final TextEditingController _textController;
-  final FocusNode _focusNode = FocusNode();
+  FocusNode? _internalFocusNode;
+  FocusNode get _effectiveFocusNode =>
+      widget.focusNode ?? (_internalFocusNode ??= FocusNode());
   bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
     _textController = TextEditingController();
-    _focusNode.addListener(_onFocusChange);
+    _effectiveFocusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(covariant AddressBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      (oldWidget.focusNode ?? _internalFocusNode)?.removeListener(
+        _onFocusChange,
+      );
+      _effectiveFocusNode.addListener(_onFocusChange);
+    }
   }
 
   void _onFocusChange() {
     setState(() {
-      _isEditing = _focusNode.hasFocus;
-      if (_focusNode.hasFocus) {
-        _textController.text = ref.read(browserControllerProvider).url;
-        _textController.selection = TextSelection(
-          baseOffset: 0,
-          extentOffset: _textController.text.length,
-        );
+      _isEditing = _effectiveFocusNode.hasFocus;
+      if (_effectiveFocusNode.hasFocus) {
+        final currentUrl = ref.read(browserControllerProvider).url;
+        if (currentUrl.isEmpty ||
+            currentUrl == 'about:blank' ||
+            currentUrl.startsWith('about:')) {
+          _textController.text = '';
+        } else {
+          _textController.text = currentUrl;
+          _textController.selection = TextSelection(
+            baseOffset: 0,
+            extentOffset: _textController.text.length,
+          );
+        }
       }
     });
   }
 
   @override
   void dispose() {
-    _focusNode.removeListener(_onFocusChange);
-    _focusNode.dispose();
+    _effectiveFocusNode.removeListener(_onFocusChange);
+    _internalFocusNode?.dispose();
     _textController.dispose();
     super.dispose();
   }
 
   void _submit(String value) {
     if (value.trim().isEmpty) return;
-    _focusNode.unfocus();
+    _effectiveFocusNode.unfocus();
     ref.read(browserControllerProvider.notifier).loadUrl(value);
   }
 
   String _formatDisplayDomain(String rawUrl) {
-    if (rawUrl.isEmpty || rawUrl == 'about:blank') return '';
+    if (rawUrl.isEmpty ||
+        rawUrl == 'about:blank' ||
+        rawUrl.startsWith('about:')) {
+      return '';
+    }
     try {
       final uri = Uri.parse(rawUrl);
       if (uri.host.isNotEmpty) {
@@ -72,13 +98,20 @@ class _AddressBarState extends ConsumerState<AddressBar> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    final displayDomain = _formatDisplayDomain(browserState.url);
+    final isBlank =
+        browserState.url.isEmpty ||
+        browserState.url == 'about:blank' ||
+        browserState.url.startsWith('about:');
+    final displayDomain = isBlank ? '' : _formatDisplayDomain(browserState.url);
     final isBookmarked = bookmarksState.bookmarks.any(
       (b) => b.url.trim() == browserState.url.trim(),
     );
 
-    if (!_isEditing && _textController.text != browserState.url) {
-      _textController.text = displayDomain;
+    if (!_isEditing) {
+      final target = isBlank ? '' : displayDomain;
+      if (_textController.text != target) {
+        _textController.text = target;
+      }
     }
 
     return Column(
@@ -108,7 +141,7 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                 const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () {
-                    _focusNode.unfocus();
+                    _effectiveFocusNode.unfocus();
                     ref.read(browserControllerProvider.notifier).goHome();
                   },
                   child: Padding(
@@ -126,7 +159,7 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                 Expanded(
                   child: TextField(
                     controller: _textController,
-                    focusNode: _focusNode,
+                    focusNode: _effectiveFocusNode,
                     textInputAction: TextInputAction.go,
                     keyboardType: TextInputType.url,
                     autocorrect: false,

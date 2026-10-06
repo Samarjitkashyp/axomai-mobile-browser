@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:axomai_browser_mobile/features/ai_assistant/presentation/ai_assistant_sheet.dart';
-import 'package:axomai_browser_mobile/features/browser/controllers/search_engine_controller.dart';
 import 'package:axomai_browser_mobile/features/home/controllers/home_feed_controller.dart';
 import 'package:axomai_browser_mobile/features/home/presentation/widgets/assam_news_section.dart';
 
@@ -15,7 +14,6 @@ class NewTabView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final searchEngine = ref.watch(searchEngineControllerProvider);
 
     return Stack(
       children: [
@@ -136,18 +134,9 @@ class NewTabView extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 20),
 
-                                // Floating Search Capsule
+                                // Floating Search Capsule (Focuses top search bar directly without bottom modal)
                                 InkWell(
-                                  onTap: () {
-                                    if (onSearchFocus != null) {
-                                      onSearchFocus!();
-                                    } else {
-                                      _showSearchModal(
-                                        context,
-                                        searchEngine.name,
-                                      );
-                                    }
-                                  },
+                                  onTap: () => onSearchFocus?.call(),
                                   borderRadius: BorderRadius.circular(28),
                                   child: Container(
                                     height: 52,
@@ -240,68 +229,6 @@ class NewTabView extends ConsumerWidget {
           ),
         ),
       ],
-    );
-  }
-
-  void _showSearchModal(BuildContext context, String engineName) {
-    final searchController = TextEditingController();
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final theme = Theme.of(ctx);
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: searchController,
-                  autofocus: true,
-                  textInputAction: TextInputAction.go,
-                  decoration: InputDecoration(
-                    hintText: 'Search with $engineName or enter address',
-                    prefixIcon: const Icon(Icons.search_rounded),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.arrow_forward_rounded),
-                      onPressed: () {
-                        final val = searchController.text.trim();
-                        if (val.isNotEmpty) {
-                          Navigator.pop(ctx);
-                          onNavigate(val);
-                        }
-                      },
-                    ),
-                    filled: true,
-                    fillColor: theme.colorScheme.surfaceContainerHighest,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  onSubmitted: (val) {
-                    if (val.trim().isNotEmpty) {
-                      Navigator.pop(ctx);
-                      onNavigate(val.trim());
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }

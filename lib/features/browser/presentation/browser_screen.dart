@@ -26,6 +26,13 @@ class BrowserScreen extends ConsumerStatefulWidget {
 class _BrowserScreenState extends ConsumerState<BrowserScreen> {
   FindInteractionController? _findInteractionController;
   String? _lastLoadedTabId;
+  final FocusNode _addressBarFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _addressBarFocusNode.dispose();
+    super.dispose();
+  }
 
   InAppWebViewSettings _buildSettings(
     bool isIncognito,
@@ -86,7 +93,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
           bottom: false,
           child: Column(
             children: <Widget>[
-              const AddressBar(),
+              AddressBar(focusNode: _addressBarFocusNode),
               if (browserState.isLoading)
                 LinearProgressIndicator(
                   value: browserState.progress > 0
@@ -253,7 +260,10 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
   ) {
     return Container(
       color: theme.colorScheme.surface,
-      child: NewTabView(onNavigate: (url) => controller.loadUrl(url)),
+      child: NewTabView(
+        onNavigate: (url) => controller.loadUrl(url),
+        onSearchFocus: () => _addressBarFocusNode.requestFocus(),
+      ),
     );
   }
 }
