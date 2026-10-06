@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:axomai_browser_mobile/features/ai_assistant/presentation/ai_assistant_sheet.dart';
 import 'package:axomai_browser_mobile/features/ai_assistant/presentation/widgets/search_suggestions_dropdown.dart';
 import 'package:axomai_browser_mobile/features/browser/controllers/browser_controller.dart';
+import 'package:axomai_browser_mobile/features/browser/presentation/widgets/page_menu_sheet.dart';
 import 'package:axomai_browser_mobile/features/library/controllers/bookmarks_controller.dart';
 import 'package:axomai_browser_mobile/features/privacy/presentation/widgets/privacy_shield_sheet.dart';
 import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
@@ -225,20 +226,22 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                       setState(() {});
                     },
                   )
-                else if (browserState.isLoading)
+                else
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20),
-                    tooltip: 'Stop',
-                    onPressed: () => ref
-                        .read(browserControllerProvider.notifier)
-                        .stopLoading(),
-                  )
-                else if (browserState.url.isNotEmpty)
-                  IconButton(
-                    icon: const Icon(Icons.refresh_rounded, size: 20),
-                    tooltip: 'Reload',
-                    onPressed: () =>
-                        ref.read(browserControllerProvider.notifier).reload(),
+                    icon: const Icon(Icons.more_vert_rounded, size: 22),
+                    tooltip: 'More Options',
+                    onPressed: () {
+                      showModalBottomSheet<void>(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(28),
+                          ),
+                        ),
+                        builder: (ctx) => const PageMenuSheet(),
+                      );
+                    },
                   ),
               ],
             ),

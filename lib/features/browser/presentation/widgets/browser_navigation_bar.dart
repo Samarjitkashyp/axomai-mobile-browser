@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:axomai_browser_mobile/features/browser/controllers/browser_controller.dart';
-import 'package:axomai_browser_mobile/features/browser/presentation/widgets/page_menu_sheet.dart';
 import 'package:axomai_browser_mobile/features/tabs/controllers/tabs_controller.dart';
 
 /// Chrome & JioSphere style Bottom Navigation Toolbar.
@@ -104,22 +103,18 @@ class BrowserNavigationBar extends ConsumerWidget {
                 tooltip: 'Library',
                 onPressed: () => context.push('/library'),
               ),
-              // 3-Dots More Menu
+              // Reload / Stop Page Button
               IconButton(
-                icon: const Icon(Icons.more_vert_rounded, size: 23),
-                tooltip: 'More Options',
-                onPressed: () {
-                  showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(28),
-                      ),
-                    ),
-                    builder: (ctx) => const PageMenuSheet(),
-                  );
-                },
+                icon: Icon(
+                  browserState.isLoading
+                      ? Icons.close_rounded
+                      : Icons.refresh_rounded,
+                  size: 23,
+                ),
+                tooltip: browserState.isLoading ? 'Stop' : 'Reload',
+                onPressed: browserState.isLoading
+                    ? () => controller.stopLoading()
+                    : () => controller.reload(),
               ),
             ],
           ),
