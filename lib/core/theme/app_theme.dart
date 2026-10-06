@@ -9,6 +9,9 @@ abstract final class AppTheme {
     if (languageCode == 'as' || languageCode == 'bn') {
       return GoogleFonts.notoSansBengaliTextTheme(baseTextTheme);
     }
+    if (languageCode == 'hi') {
+      return GoogleFonts.notoSansDevanagariTextTheme(baseTextTheme);
+    }
     return GoogleFonts.plusJakartaSansTextTheme(baseTextTheme);
   }
 
@@ -19,56 +22,35 @@ abstract final class AppTheme {
   }) {
     final isDark = brightness == Brightness.dark;
 
-    // Obsidian Dark Glass has a specialized dark aesthetic
-    if (themeType == AppThemeType.obsidianDarkGlass && isDark) {
-      const surfaceColor = Color(0xFF13131A);
-      const backgroundColor = Color(0xFF09090D);
-      const primary = Color(0xFF9D65FF);
-
-      const colorScheme = ColorScheme.dark(
-        primary: primary,
-        secondary: Color(0xFF00E5FF),
-        surface: surfaceColor,
-        error: Color(0xFFFF5252),
-        onPrimary: Colors.white,
-        onSecondary: Colors.black,
-        onSurface: Color(0xFFEEEEF5),
-      );
-
-      final baseTheme = ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: backgroundColor,
-        colorScheme: colorScheme,
-      );
-
-      return baseTheme.copyWith(
-        textTheme: _buildTextTheme(locale, baseTheme.textTheme),
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          elevation: 0,
-          backgroundColor: surfaceColor,
-          foregroundColor: Colors.white,
-        ),
-        cardTheme: CardThemeData(
-          color: surfaceColor.withAlpha(220),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: Colors.white.withAlpha(30), width: 1),
-          ),
-        ),
-      );
-    }
+    // Direct background & surface tokens from axomai-browser.aiaxom.co.in
+    final scaffoldBg = isDark
+        ? const Color(0xFF0B1220) // Dark obsidian
+        : const Color(0xFFF0FDF4); // Light fresh mint
+    final surfaceColor = isDark
+        ? const Color(0xFF111C2E) // Dark slate surface
+        : Colors.white;
+    final surfaceHighest = isDark
+        ? const Color(0xFF1F2F46) // Line / border dark
+        : const Color(0xFFE2F5EA); // Line / pill light
+    final surfaceLowest = isDark
+        ? const Color(0xFF080D17)
+        : const Color(0xFFFFFFFF);
 
     final colorScheme = ColorScheme.fromSeed(
       seedColor: themeType.primaryColor,
+      primary: themeType.primaryColor,
+      secondary: themeType.secondaryColor,
+      tertiary: themeType.tertiaryColor,
+      surface: surfaceColor,
+      surfaceContainerHighest: surfaceHighest,
+      surfaceContainerLowest: surfaceLowest,
       brightness: brightness,
     );
 
     final baseTheme = ThemeData(
       useMaterial3: true,
       brightness: brightness,
+      scaffoldBackgroundColor: scaffoldBg,
       colorScheme: colorScheme,
     );
 
@@ -77,12 +59,18 @@ abstract final class AppTheme {
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: colorScheme.surface,
+        backgroundColor: surfaceColor,
         foregroundColor: colorScheme.onSurface,
       ),
       cardTheme: CardThemeData(
-        elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: surfaceColor,
+        elevation: isDark ? 0 : 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: isDark
+              ? BorderSide(color: Colors.white.withAlpha(25), width: 1)
+              : BorderSide.none,
+        ),
       ),
     );
   }

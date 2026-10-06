@@ -44,30 +44,45 @@ extension AppThemeTypeExtension on AppThemeType {
   Color get primaryColor {
     switch (this) {
       case AppThemeType.teaGarden:
-        return const Color(0xFF007A5A); // Lush Assam tea leaf green
+        return const Color(0xFF059669); // Emerald 600 - Lush Assam tea garden
       case AppThemeType.kazirangaMist:
-        return const Color(0xFF355E3B); // Forest sage & misty green
+        return const Color(0xFF15803D); // Forest green - Kaziranga mist
       case AppThemeType.brahmaputraAzure:
-        return const Color(0xFF0D6EFD); // Mighty Brahmaputra river azure
+        return const Color(0xFF0284C7); // Sky azure - Brahmaputra river
       case AppThemeType.gamosaCrimson:
-        return const Color(0xFFD32F2F); // Traditional Gamosa woven crimson red
+        return const Color(0xFFDC2626); // Crimson red - Traditional Gamosa
       case AppThemeType.obsidianDarkGlass:
-        return const Color(0xFF8A58FC); // Deep electric neon purple on obsidian
+        return const Color(0xFF10B981); // Emerald accent on dark glass
     }
   }
 
   Color get secondaryColor {
     switch (this) {
       case AppThemeType.teaGarden:
-        return const Color(0xFF2E7D32);
+        return const Color(0xFF10B981); // Emerald 500
       case AppThemeType.kazirangaMist:
-        return const Color(0xFF558B2F);
+        return const Color(0xFF16A34A); // Green 600
       case AppThemeType.brahmaputraAzure:
-        return const Color(0xFF0288D1);
+        return const Color(0xFF06B6D4); // Cyan 500
       case AppThemeType.gamosaCrimson:
-        return const Color(0xFFB71C1C);
+        return const Color(0xFFEF4444); // Red 500
       case AppThemeType.obsidianDarkGlass:
-        return const Color(0xFF00E5FF);
+        return const Color(0xFF059669); // Emerald 600
+    }
+  }
+
+  Color get tertiaryColor {
+    switch (this) {
+      case AppThemeType.teaGarden:
+        return const Color(0xFFF59E0B); // Amber 500
+      case AppThemeType.kazirangaMist:
+        return const Color(0xFFD97706); // Amber 600
+      case AppThemeType.brahmaputraAzure:
+        return const Color(0xFF38BDF8); // Sky 400
+      case AppThemeType.gamosaCrimson:
+        return const Color(0xFFFB923C); // Orange 400
+      case AppThemeType.obsidianDarkGlass:
+        return const Color(0xFFF59E0B); // Amber 500
     }
   }
 }
