@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:axomai_browser_mobile/core/constants/app_constants.dart';
 import 'package:axomai_browser_mobile/features/browser/controllers/browser_controller.dart';
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/address_bar.dart';
-import 'package:axomai_browser_mobile/features/browser/presentation/widgets/browser_navigation_bar.dart';
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/find_in_page_bar.dart';
 import 'package:axomai_browser_mobile/features/home/presentation/new_tab_view.dart';
 import 'package:axomai_browser_mobile/features/library/controllers/history_controller.dart';
@@ -115,7 +114,6 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
                   ],
                 ),
               ),
-              const BrowserNavigationBar(),
             ],
           ),
         ),

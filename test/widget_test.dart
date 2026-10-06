@@ -6,7 +6,6 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:axomai_browser_mobile/app/app.dart';
 import 'package:axomai_browser_mobile/core/theme/theme_controller.dart';
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/address_bar.dart';
-import 'package:axomai_browser_mobile/features/browser/presentation/widgets/browser_navigation_bar.dart';
 import 'package:axomai_browser_mobile/features/library/controllers/bookmarks_controller.dart';
 import 'package:axomai_browser_mobile/features/library/data/database_helper.dart';
 
@@ -14,7 +13,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
 
-  testWidgets('Axomai Browser initializes with AddressBar and NavigationBar', (
+  testWidgets('Axomai Browser initializes with AddressBar and Home control', (
     WidgetTester tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
@@ -33,10 +32,9 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    // Verify AddressBar and Bottom Navigation Bar are present
+    // Verify AddressBar, Home icon, and 3-dot menu are present
     expect(find.byType(AddressBar), findsOneWidget);
-    expect(find.byType(BrowserNavigationBar), findsOneWidget);
+    expect(find.byIcon(Icons.home_rounded), findsOneWidget);
     expect(find.byIcon(Icons.more_vert_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.collections_bookmark_outlined), findsOneWidget);
   });
 }

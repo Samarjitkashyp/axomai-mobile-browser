@@ -5,7 +5,6 @@ import 'package:axomai_browser_mobile/features/ai_assistant/presentation/widgets
 import 'package:axomai_browser_mobile/features/browser/controllers/browser_controller.dart';
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/page_menu_sheet.dart';
 import 'package:axomai_browser_mobile/features/library/controllers/bookmarks_controller.dart';
-import 'package:axomai_browser_mobile/features/privacy/presentation/widgets/privacy_shield_sheet.dart';
 import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
 
 /// Top Address / Omnibox bar with Chrome & JioSphere style domain formatting.
@@ -74,7 +73,6 @@ class _AddressBarState extends ConsumerState<AddressBar> {
     final l10n = AppLocalizations.of(context);
 
     final displayDomain = _formatDisplayDomain(browserState.url);
-    final isHttps = browserState.isSecure && browserState.url.isNotEmpty;
     final isBookmarked = bookmarksState.bookmarks.any(
       (b) => b.url.trim() == browserState.url.trim(),
     );
@@ -109,33 +107,18 @@ class _AddressBarState extends ConsumerState<AddressBar> {
               children: <Widget>[
                 const SizedBox(width: 8),
                 GestureDetector(
-                  onTap: browserState.url.isNotEmpty
-                      ? () => showModalBottomSheet<void>(
-                          context: context,
-                          isScrollControlled: true,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(24),
-                            ),
-                          ),
-                          builder: (ctx) =>
-                              PrivacyShieldSheet(currentUrl: browserState.url),
-                        )
-                      : null,
+                  onTap: () {
+                    _focusNode.unfocus();
+                    ref.read(browserControllerProvider.notifier).goHome();
+                  },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
                     child: Icon(
-                      browserState.url.isEmpty
-                          ? Icons.search_rounded
-                          : (isHttps
-                                ? Icons.lock_rounded
-                                : Icons.lock_open_rounded),
-                      size: 18,
+                      Icons.home_rounded,
+                      size: 19,
                       color: browserState.url.isEmpty
-                          ? theme.colorScheme.onSurfaceVariant
-                          : (isHttps
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.error),
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
