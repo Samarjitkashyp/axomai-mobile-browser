@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:axomai_browser_mobile/features/browser/controllers/browser_controller.dart';
+import 'package:axomai_browser_mobile/features/browser/presentation/widgets/page_menu_sheet.dart';
 import 'package:axomai_browser_mobile/features/tabs/controllers/tabs_controller.dart';
 
 /// Bottom navigation toolbar for essential browser controls, tabs, and library.
@@ -96,9 +97,20 @@ class BrowserNavigationBar extends ConsumerWidget {
                     : null,
               ),
               IconButton(
-                icon: const Icon(Icons.settings_outlined, size: 20),
-                tooltip: 'Settings',
-                onPressed: () => context.push('/settings'),
+                icon: const Icon(Icons.more_vert_rounded, size: 22),
+                tooltip: 'More Options',
+                onPressed: () {
+                  showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                    ),
+                    builder: (ctx) => const PageMenuSheet(),
+                  );
+                },
               ),
             ],
           ),

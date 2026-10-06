@@ -85,6 +85,41 @@ class BrowserController extends StateNotifier<BrowserState> {
     }
   }
 
+  Future<void> toggleDesktopMode() async {
+    final newMode = !state.isDesktopMode;
+    state = state.copyWith(isDesktopMode: newMode);
+    final ua = newMode
+        ? 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        : '';
+    await webViewController?.setSettings(
+      settings: InAppWebViewSettings(
+        userAgent: ua.isNotEmpty ? ua : null,
+        useWideViewPort: newMode,
+        loadWithOverviewMode: newMode,
+      ),
+    );
+    await reload();
+  }
+
+  Future<void> zoomIn() async {
+    final newZoom = (state.pageZoom + 0.25).clamp(0.5, 2.5);
+    state = state.copyWith(pageZoom: newZoom);
+    await webViewController?.zoomBy(zoomFactor: 1.25);
+  }
+
+  Future<void> zoomOut() async {
+    final newZoom = (state.pageZoom - 0.25).clamp(0.5, 2.5);
+    state = state.copyWith(pageZoom: newZoom);
+    await webViewController?.zoomBy(zoomFactor: 0.8);
+  }
+
+  Future<void> resetZoom() async {
+    state = state.copyWith(pageZoom: 1.0);
+    await webViewController?.zoomBy(
+      zoomFactor: 1.0 / (state.pageZoom > 0 ? state.pageZoom : 1.0),
+    );
+  }
+
   void onProgressChanged(int progress) {
     state = state.copyWith(
       progress: progress / 100.0,

@@ -36,7 +36,7 @@ void main() {
     // Verify AddressBar and Bottom Navigation Bar are present
     expect(find.byType(AddressBar), findsOneWidget);
     expect(find.byType(BrowserNavigationBar), findsOneWidget);
-    expect(find.byIcon(Icons.settings_outlined), findsWidgets);
+    expect(find.byIcon(Icons.more_vert_rounded), findsOneWidget);
     expect(find.byIcon(Icons.collections_bookmark_outlined), findsOneWidget);
   });
 }

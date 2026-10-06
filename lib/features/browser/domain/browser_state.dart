@@ -11,6 +11,8 @@ class BrowserState {
   final String findQuery;
   final int findCurrentIndex;
   final int findTotalMatches;
+  final bool isDesktopMode;
+  final double pageZoom;
 
   const BrowserState({
     this.url = '',
@@ -24,6 +26,8 @@ class BrowserState {
     this.findQuery = '',
     this.findCurrentIndex = 0,
     this.findTotalMatches = 0,
+    this.isDesktopMode = false,
+    this.pageZoom = 1.0,
   });
 
   BrowserState copyWith({
@@ -38,6 +42,8 @@ class BrowserState {
     String? findQuery,
     int? findCurrentIndex,
     int? findTotalMatches,
+    bool? isDesktopMode,
+    double? pageZoom,
   }) {
     return BrowserState(
       url: url ?? this.url,
@@ -51,6 +57,8 @@ class BrowserState {
       findQuery: findQuery ?? this.findQuery,
       findCurrentIndex: findCurrentIndex ?? this.findCurrentIndex,
       findTotalMatches: findTotalMatches ?? this.findTotalMatches,
+      isDesktopMode: isDesktopMode ?? this.isDesktopMode,
+      pageZoom: pageZoom ?? this.pageZoom,
     );
   }
 }

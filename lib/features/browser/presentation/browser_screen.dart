@@ -11,6 +11,8 @@ import 'package:axomai_browser_mobile/features/home/presentation/new_tab_view.da
 import 'package:axomai_browser_mobile/features/library/controllers/history_controller.dart';
 import 'package:axomai_browser_mobile/features/privacy/controllers/privacy_controller.dart';
 import 'package:axomai_browser_mobile/features/privacy/domain/privacy_settings.dart';
+import 'package:axomai_browser_mobile/features/reader/controllers/reader_controller.dart';
+import 'package:axomai_browser_mobile/features/reader/presentation/reader_view.dart';
 import 'package:axomai_browser_mobile/features/tabs/controllers/tabs_controller.dart';
 import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
 
@@ -51,7 +53,9 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
     final browserState = ref.watch(browserControllerProvider);
     final tabsState = ref.watch(tabsControllerProvider);
     final privacyState = ref.watch(privacyControllerProvider);
+    final readerState = ref.watch(readerControllerProvider);
     final browserNotifier = ref.read(browserControllerProvider.notifier);
+    final readerNotifier = ref.read(readerControllerProvider.notifier);
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
@@ -67,9 +71,13 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
     }
 
     return PopScope(
-      canPop: !browserState.canGoBack,
+      canPop: !browserState.canGoBack && !readerState.isReaderOpen,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (readerState.isReaderOpen) {
+          readerNotifier.closeReader();
+          return;
+        }
         if (browserState.canGoBack) {
           await browserNotifier.goBack();
         }
@@ -103,6 +111,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
                     if (browserState.url.isEmpty ||
                         browserState.url == 'about:blank')
                       _buildStartPage(context, theme, l10n, browserNotifier),
+                    if (readerState.isReaderOpen) const ReaderView(),
                   ],
                 ),
               ),
