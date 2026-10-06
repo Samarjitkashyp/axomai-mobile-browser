@@ -4,15 +4,52 @@ import 'package:axomai_browser_mobile/features/ai_assistant/presentation/ai_assi
 import 'package:axomai_browser_mobile/features/home/controllers/home_feed_controller.dart';
 import 'package:axomai_browser_mobile/features/home/presentation/widgets/assam_news_section.dart';
 
-/// Google-style centered hero layout with ~1.5 news items peeking from bottom on initial screen.
-class NewTabView extends ConsumerWidget {
+/// Google-style centered hero layout with direct center search typing and ~1.5 Assam news items peeking from bottom.
+class NewTabView extends ConsumerStatefulWidget {
   final void Function(String queryOrUrl) onNavigate;
   final VoidCallback? onSearchFocus;
 
   const NewTabView({super.key, required this.onNavigate, this.onSearchFocus});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NewTabView> createState() => _NewTabViewState();
+}
+
+class _NewTabViewState extends ConsumerState<NewTabView> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _hasSearchText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      final hasText = _searchController.text.trim().isNotEmpty;
+      if (hasText != _hasSearchText) {
+        setState(() {
+          _hasSearchText = hasText;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _submitSearch([String? text]) {
+    final query = (text ?? _searchController.text).trim();
+    if (query.isNotEmpty) {
+      _searchFocusNode.unfocus();
+      widget.onNavigate(query);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Stack(
@@ -115,79 +152,126 @@ class NewTabView extends ConsumerWidget {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: 12),
                                 Text(
-                                  'AXOMAI',
+                                  'AXOMAI Browser',
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w900,
-                                    letterSpacing: 2.5,
+                                    letterSpacing: 1.8,
+                                    fontSize: 20,
                                     color: Colors.white,
                                   ),
                                 ),
+                                const SizedBox(height: 4),
                                 Text(
-                                  'Smart Mobile Browser',
+                                  'Fast  •  Privacy Focused  •  Extreme Security',
+                                  textAlign: TextAlign.center,
                                   style: theme.textTheme.labelSmall?.copyWith(
                                     color: Colors.white.withValues(alpha: 0.85),
-                                    letterSpacing: 0.6,
+                                    letterSpacing: 0.8,
                                     fontWeight: FontWeight.w600,
+                                    fontSize: 12,
                                   ),
                                 ),
                                 const SizedBox(height: 20),
 
-                                // Floating Search Capsule (Focuses top search bar directly without bottom modal)
-                                InkWell(
-                                  onTap: () => onSearchFocus?.call(),
-                                  borderRadius: BorderRadius.circular(28),
-                                  child: Container(
-                                    height: 52,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
+                                // Interactive Direct-Typing Search Capsule
+                                Container(
+                                  height: 52,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.48),
+                                    borderRadius: BorderRadius.circular(28),
+                                    border: Border.all(
+                                      color: _searchFocusNode.hasFocus
+                                          ? const Color(0xFF10B981)
+                                          : Colors.white.withValues(
+                                              alpha: 0.25,
+                                            ),
+                                      width: _searchFocusNode.hasFocus
+                                          ? 1.6
+                                          : 1.2,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.45,
-                                      ),
-                                      borderRadius: BorderRadius.circular(28),
-                                      border: Border.all(
-                                        color: Colors.white.withValues(
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
                                           alpha: 0.25,
                                         ),
-                                        width: 1.2,
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
                                       ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.2,
-                                          ),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
                                           Icons.search_rounded,
                                           size: 22,
                                           color: Color(0xFF10B981),
                                         ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Text(
-                                            'Search or type URL',
-                                            style: theme.textTheme.bodyMedium
-                                                ?.copyWith(
-                                                  color: Colors.white
-                                                      .withValues(alpha: 0.75),
-                                                  fontSize: 15,
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        onPressed: () => _submitSearch(),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _searchController,
+                                          focusNode: _searchFocusNode,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          cursorColor: const Color(0xFF10B981),
+                                          textInputAction:
+                                              TextInputAction.search,
+                                          keyboardType: TextInputType.url,
+                                          autocorrect: false,
+                                          onSubmitted: (value) =>
+                                              _submitSearch(value),
+                                          decoration: InputDecoration(
+                                            hintText: 'Search or type URL',
+                                            hintStyle: TextStyle(
+                                              color: Colors.white.withValues(
+                                                alpha: 0.65,
+                                              ),
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                            border: InputBorder.none,
+                                            isDense: true,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                  vertical: 8,
                                                 ),
                                           ),
                                         ),
+                                      ),
+                                      if (_hasSearchText)
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.close_rounded,
+                                            size: 18,
+                                            color: Colors.white70,
+                                          ),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                          onPressed: () {
+                                            _searchController.clear();
+                                          },
+                                        )
+                                      else
                                         IconButton(
                                           icon: const Icon(
                                             Icons.auto_awesome_rounded,
                                             size: 20,
                                           ),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
                                           color: const Color(0xFFF59E0B),
                                           tooltip: 'Axom AI',
                                           onPressed: () {
@@ -208,8 +292,7 @@ class NewTabView extends ConsumerWidget {
                                             );
                                           },
                                         ),
-                                      ],
-                                    ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -219,7 +302,7 @@ class NewTabView extends ConsumerWidget {
                       ),
 
                       // Assam News Highlights Feed (First ~1.5 items peek up at bottom of screen)
-                      AssamNewsSection(onOpenArticle: onNavigate),
+                      AssamNewsSection(onOpenArticle: widget.onNavigate),
                       const SizedBox(height: 32),
                     ],
                   ),

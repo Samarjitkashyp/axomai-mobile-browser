@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:axomai_browser_mobile/core/constants/app_constants.dart';
@@ -27,6 +28,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
   FindInteractionController? _findInteractionController;
   String? _lastLoadedTabId;
   final FocusNode _addressBarFocusNode = FocusNode();
+  DateTime? _lastBackPressTime;
 
   @override
   void dispose() {
@@ -77,15 +79,89 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
     }
 
     return PopScope(
-      canPop: !browserState.canGoBack && !readerState.isReaderOpen,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+
+        // 1. Close Reader view if open
         if (readerState.isReaderOpen) {
           readerNotifier.closeReader();
           return;
         }
+
+        // 2. Close Find in Page bar if open
+        if (browserState.isFindInPageOpen) {
+          browserNotifier.closeFindInPage();
+          return;
+        }
+
+        // 3. Navigate back in Web history if possible
         if (browserState.canGoBack) {
           await browserNotifier.goBack();
+          return;
+        }
+
+        // 4. Return to New Tab Home screen if currently on any webpage
+        if (browserState.url.isNotEmpty && browserState.url != 'about:blank') {
+          await browserNotifier.loadUrl('about:blank');
+          return;
+        }
+
+        // 5. If already on New Tab home, prevent accidental app exit with double-tap safety
+        final now = DateTime.now();
+        if (_lastBackPressTime == null ||
+            now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+          _lastBackPressTime = now;
+          if (mounted) {
+            ScaffoldMessenger.of(context).clearSnackBars();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.touch_app_rounded,
+                      color: Color(0xFF10B981),
+                      size: 18,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Press back again to exit',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: const Color(
+                  0xFF0F172A,
+                ).withValues(alpha: 0.95),
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 20,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    width: 1,
+                  ),
+                ),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+          return;
+        }
+
+        // Double press confirmed: close app safely
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          await SystemNavigator.pop();
         }
       },
       child: Scaffold(

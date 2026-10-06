@@ -4,29 +4,39 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xml/xml.dart';
 import 'package:axomai_browser_mobile/features/home/domain/news_article.dart';
 
-/// Service to fetch and parse Assam/Northeast RSS news feeds with offline caching.
+/// Service to fetch and parse Assam-exclusive RSS news feeds with offline caching.
 class NewsFeedService {
   final http.Client _client;
   final SharedPreferences? prefs;
 
-  static const String _newsCacheKey = 'axomai_cached_news_feed';
+  static const String _newsCacheKey = 'axomai_cached_assam_news_feed';
 
-  /// Primary RSS feed URLs for Assam and Northeast coverage
-  static const List<String> _feedUrls = ['https://assamtribune.com/feed'];
+  /// Primary Assam news feeds
+  static const List<Map<String, String>> _feeds = [
+    {
+      'url':
+          'https://news.google.com/rss/search?q=Assam+news&hl=en-IN&gl=IN&ceid=IN:en',
+      'source': 'Assam News',
+    },
+    {'url': 'https://assamtribune.com/feed', 'source': 'Assam Tribune'},
+    {'url': 'https://nenow.in/feed', 'source': 'Northeast Now'},
+  ];
 
   NewsFeedService({http.Client? client, this.prefs})
     : _client = client ?? http.Client();
 
   /// Fetch latest Assam headlines, with robust fallback to cache and curated defaults.
   Future<List<NewsArticle>> fetchNews() async {
-    for (final feedUrl in _feedUrls) {
+    for (final feed in _feeds) {
+      final feedUrl = feed['url']!;
+      final sourceName = feed['source']!;
       try {
         final response = await _client
             .get(Uri.parse(feedUrl))
             .timeout(const Duration(seconds: 8));
 
         if (response.statusCode == 200) {
-          final articles = _parseRssXml(response.body, 'Assam Tribune');
+          final articles = _parseRssXml(response.body, sourceName);
           if (articles.isNotEmpty) {
             await _saveToCache(articles);
             return articles;
@@ -52,7 +62,11 @@ class NewsFeedService {
       final items = document.findAllElements('item');
 
       for (final item in items) {
-        final title = item.findElements('title').firstOrNull?.innerText.trim();
+        String? title = item
+            .findElements('title')
+            .firstOrNull
+            ?.innerText
+            .trim();
         final link = item.findElements('link').firstOrNull?.innerText.trim();
         final rawDesc =
             item.findElements('description').firstOrNull?.innerText ?? '';
@@ -67,6 +81,16 @@ class NewsFeedService {
             .firstOrNull
             ?.innerText
             .trim();
+
+        // Extract custom source if present in title (e.g. "Title - Source")
+        String source = defaultSource;
+        if (title != null && title.contains(' - ')) {
+          final parts = title.split(' - ');
+          if (parts.length > 1) {
+            source = parts.last.trim();
+            title = parts.sublist(0, parts.length - 1).join(' - ').trim();
+          }
+        }
 
         // Extract image from enclosure or media:content or img tag
         String? imageUrl = item
@@ -89,7 +113,7 @@ class NewsFeedService {
             NewsArticle(
               title: title,
               link: link,
-              source: defaultSource,
+              source: source,
               description: description,
               pubDate: pubDate,
               category: category,
@@ -137,7 +161,7 @@ class NewsFeedService {
     NewsArticle(
       title: 'Brahmaputra Heritage Centre showcases Assam rich cultural legacy',
       link: 'https://assamtribune.com',
-      source: 'Assam News',
+      source: 'Assam Tribune',
       description:
           'Panbazar riverfront revitalization highlights traditional Assamese crafts and historic maritime traditions.',
       pubDate: '2 hours ago',
@@ -194,7 +218,7 @@ class NewsFeedService {
       title:
           'Majuli Island river arts project gains UNESCO international acclaim',
       link: 'https://assamtribune.com',
-      source: 'Sentinel Assam',
+      source: 'Assam Heritage',
       description:
           'Satras preserve ancient mask-making and neo-Vaishnavite dance forms on the world largest river island.',
       pubDate: 'Yesterday',

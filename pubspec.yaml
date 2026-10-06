@@ -31,6 +31,14 @@ dev_dependencies:
   flutter_lints: 5.0.0
   sqflite_common_ffi: ^2.4.3
   sqlite3_flutter_libs: ^0.6.0+eol
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/axomai_logo.png"
+  adaptive_icon_background: "#081214"
+  adaptive_icon_foreground: "assets/images/axomai_logo.png"
 
 flutter:
   uses-material-design: true
