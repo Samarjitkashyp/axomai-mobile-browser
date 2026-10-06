@@ -7,6 +7,7 @@ import 'package:axomai_browser_mobile/features/browser/controllers/browser_contr
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/address_bar.dart';
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/browser_navigation_bar.dart';
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/find_in_page_bar.dart';
+import 'package:axomai_browser_mobile/features/tabs/controllers/tabs_controller.dart';
 import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
 
 /// Primary browser container managing WebView, AddressBar, and Navigation.
@@ -19,30 +20,47 @@ class BrowserScreen extends ConsumerStatefulWidget {
 
 class _BrowserScreenState extends ConsumerState<BrowserScreen> {
   FindInteractionController? _findInteractionController;
+  String? _lastLoadedTabId;
 
-  final InAppWebViewSettings _settings = InAppWebViewSettings(
-    isInspectable: kDebugMode,
-    mediaPlaybackRequiresUserGesture: false,
-    allowsInlineMediaPlayback: true,
-    useHybridComposition: true,
-    supportZoom: true,
-    builtInZoomControls: true,
-    displayZoomControls: false,
-  );
+  InAppWebViewSettings _buildSettings(bool isIncognito) {
+    return InAppWebViewSettings(
+      isInspectable: kDebugMode,
+      mediaPlaybackRequiresUserGesture: false,
+      allowsInlineMediaPlayback: true,
+      useHybridComposition: true,
+      supportZoom: true,
+      builtInZoomControls: true,
+      displayZoomControls: false,
+      incognito: isIncognito,
+      cacheEnabled: !isIncognito,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final browserState = ref.watch(browserControllerProvider);
-    final controller = ref.read(browserControllerProvider.notifier);
+    final tabsState = ref.watch(tabsControllerProvider);
+    final browserNotifier = ref.read(browserControllerProvider.notifier);
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+
+    // Sync active tab change
+    final activeTab = tabsState.activeTab;
+    if (activeTab != null && activeTab.id != _lastLoadedTabId) {
+      _lastLoadedTabId = activeTab.id;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (activeTab.url.isNotEmpty && activeTab.url != browserState.url) {
+          browserNotifier.loadUrl(activeTab.url);
+        }
+      });
+    }
 
     return PopScope(
       canPop: !browserState.canGoBack,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         if (browserState.canGoBack) {
-          await controller.goBack();
+          await browserNotifier.goBack();
         }
       },
       child: Scaffold(
@@ -66,9 +84,9 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
               Expanded(
                 child: Stack(
                   children: [
-                    _buildWebView(controller),
+                    _buildWebView(browserNotifier, tabsState.isIncognitoMode),
                     if (browserState.url.isEmpty)
-                      _buildStartPage(context, theme, l10n, controller),
+                      _buildStartPage(context, theme, l10n, browserNotifier),
                   ],
                 ),
               ),
@@ -80,8 +98,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
     );
   }
 
-  Widget _buildWebView(BrowserController controller) {
-    // Check if platform implementation is initialized (prevents headless test crashes)
+  Widget _buildWebView(BrowserController controller, bool isIncognito) {
     if (InAppWebViewPlatform.instance == null) {
       return Container(
         color: Colors.transparent,
@@ -91,7 +108,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
     }
 
     return InAppWebView(
-      initialSettings: _settings,
+      initialSettings: _buildSettings(isIncognito),
       initialUrlRequest: URLRequest(url: WebUri(AppConstants.defaultHomePage)),
       findInteractionController: _findInteractionController,
       onWebViewCreated: (webController) {
@@ -115,20 +132,35 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
       },
       onLoadStart: (webController, url) {
         controller.onUrlChanged(url);
+        _syncTabUrlAndTitle(url?.toString(), null);
       },
       onLoadStop: (webController, url) {
         controller.onUrlChanged(url);
+        _syncTabUrlAndTitle(url?.toString(), null);
       },
       onProgressChanged: (webController, progress) {
         controller.onProgressChanged(progress);
       },
       onTitleChanged: (webController, title) {
         controller.onTitleChanged(title);
+        _syncTabUrlAndTitle(null, title);
       },
       onUpdateVisitedHistory: (webController, url, isReload) {
         controller.onUrlChanged(url);
+        _syncTabUrlAndTitle(url?.toString(), null);
       },
     );
+  }
+
+  void _syncTabUrlAndTitle(String? url, String? title) {
+    final tabsNotifier = ref.read(tabsControllerProvider.notifier);
+    final activeTab = ref.read(tabsControllerProvider).activeTab;
+    if (activeTab != null) {
+      tabsNotifier.updateActiveTabInfo(
+        url: url ?? activeTab.url,
+        title: title ?? activeTab.title,
+      );
+    }
   }
 
   Widget _buildStartPage(
