@@ -1,0 +1,23 @@
+name: axomai_browser_mobile
+description: "Axomai Browser - Privacy-first, intelligent mobile web browser."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: 2.6.1
+  go_router: 14.8.1
+  cupertino_icons: 1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: 5.0.0
+
+flutter:
+  uses-material-design: true
