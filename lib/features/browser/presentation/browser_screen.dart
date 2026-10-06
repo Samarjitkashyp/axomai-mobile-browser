@@ -161,6 +161,13 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
       },
       shouldInterceptRequest: (webController, request) async {
         final urlString = request.url.toString();
+        final currentBrowserUrl = ref.read(browserControllerProvider).url;
+        // Never block main frame document navigation or internal schemes
+        if (urlString.startsWith('about:') ||
+            urlString.startsWith('data:') ||
+            urlString == currentBrowserUrl) {
+          return null;
+        }
         final privacyNotifier = ref.read(privacyControllerProvider.notifier);
         final blocker = ref.read(contentBlockerServiceProvider);
 
