@@ -5,7 +5,7 @@ import 'package:axomai_browser_mobile/features/browser/controllers/search_engine
 import 'package:axomai_browser_mobile/features/home/controllers/home_feed_controller.dart';
 import 'package:axomai_browser_mobile/features/home/presentation/widgets/assam_news_section.dart';
 
-/// Chrome & JioSphere inspired modern New Tab Page.
+/// Chrome & JioSphere inspired modern New Tab Page with bottom half news feed.
 class NewTabView extends ConsumerWidget {
   final void Function(String queryOrUrl) onNavigate;
   final VoidCallback? onSearchFocus;
@@ -17,82 +17,79 @@ class NewTabView extends ConsumerWidget {
     final theme = Theme.of(context);
     final searchEngine = ref.watch(searchEngineControllerProvider);
 
-    return RefreshIndicator(
-      onRefresh: () => ref.read(homeFeedProvider.notifier).refreshFeed(),
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
-        ),
-        slivers: [
-          // Hero Axomai Branding Header
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 28, bottom: 12),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              theme.colorScheme.primary,
-                              theme.colorScheme.tertiary,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: theme.colorScheme.primary.withValues(
-                                alpha: 0.35,
+    return SafeArea(
+      child: Column(
+        children: [
+          // Top Half: Centered Axomai Logo & Floating Search Capsule
+          Expanded(
+            flex: 5,
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                theme.colorScheme.primary,
+                                theme.colorScheme.tertiary,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.35,
+                                ),
+                                blurRadius: 14,
+                                offset: const Offset(0, 4),
                               ),
-                              blurRadius: 14,
-                              offset: const Offset(0, 4),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.explore_rounded,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'AXOMAI',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2.0,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                            Text(
+                              'Smart Mobile Browser',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ],
                         ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.explore_rounded,
-                            color: Colors.white,
-                            size: 26,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'AXOMAI',
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2.0,
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-                          Text(
-                            'Smart Mobile Browser',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
 
-                  // Center Floating Search Capsule (Chrome / JioSphere style)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: InkWell(
+                    // Floating Search Capsule
+                    InkWell(
                       onTap: () {
                         if (onSearchFocus != null) {
                           onSearchFocus!();
@@ -166,18 +163,49 @@ class NewTabView extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
 
-          // Assam Discover / Headlines Section
-          SliverToBoxAdapter(
-            child: AssamNewsSection(onOpenArticle: onNavigate),
+          // Bottom Half: Dedicated Half-Screen News Container
+          Expanded(
+            flex: 6,
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerLowest,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+                border: Border(
+                  top: BorderSide(
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.35,
+                    ),
+                    width: 1,
+                  ),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: RefreshIndicator(
+                onRefresh: () =>
+                    ref.read(homeFeedProvider.notifier).refreshFeed(),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  child: AssamNewsSection(onOpenArticle: onNavigate),
+                ),
+              ),
+            ),
           ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 60)),
         ],
       ),
     );
