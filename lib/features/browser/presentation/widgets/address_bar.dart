@@ -7,7 +7,7 @@ import 'package:axomai_browser_mobile/features/library/controllers/bookmarks_con
 import 'package:axomai_browser_mobile/features/privacy/presentation/widgets/privacy_shield_sheet.dart';
 import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
 
-/// Top Address / Omnibox bar supporting search or direct URL navigation.
+/// Top Address / Omnibox bar with Chrome & JioSphere style domain formatting.
 class AddressBar extends ConsumerStatefulWidget {
   const AddressBar({super.key});
 
@@ -31,6 +31,7 @@ class _AddressBarState extends ConsumerState<AddressBar> {
     setState(() {
       _isEditing = _focusNode.hasFocus;
       if (_focusNode.hasFocus) {
+        _textController.text = ref.read(browserControllerProvider).url;
         _textController.selection = TextSelection(
           baseOffset: 0,
           extentOffset: _textController.text.length,
@@ -53,6 +54,17 @@ class _AddressBarState extends ConsumerState<AddressBar> {
     ref.read(browserControllerProvider.notifier).loadUrl(value);
   }
 
+  String _formatDisplayDomain(String rawUrl) {
+    if (rawUrl.isEmpty || rawUrl == 'about:blank') return '';
+    try {
+      final uri = Uri.parse(rawUrl);
+      if (uri.host.isNotEmpty) {
+        return uri.host.replaceFirst('www.', '');
+      }
+    } catch (_) {}
+    return rawUrl;
+  }
+
   @override
   Widget build(BuildContext context) {
     final browserState = ref.watch(browserControllerProvider);
@@ -60,30 +72,35 @@ class _AddressBarState extends ConsumerState<AddressBar> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    if (!_isEditing && _textController.text != browserState.url) {
-      _textController.text = browserState.url;
-    }
-
+    final displayDomain = _formatDisplayDomain(browserState.url);
     final isHttps = browserState.isSecure && browserState.url.isNotEmpty;
     final isBookmarked = bookmarksState.bookmarks.any(
       (b) => b.url.trim() == browserState.url.trim(),
     );
 
+    if (!_isEditing && _textController.text != browserState.url) {
+      _textController.text = displayDomain;
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           color: theme.colorScheme.surface,
           child: Container(
-            height: 46,
+            height: 48,
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withAlpha(120),
+              color: _isEditing
+                  ? theme.colorScheme.surfaceContainerHighest
+                  : theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.65,
+                    ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: _isEditing
                     ? theme.colorScheme.primary
-                    : theme.colorScheme.outlineVariant.withAlpha(80),
+                    : theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
                 width: 1.2,
               ),
             ),
@@ -106,26 +123,22 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                       : null,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          browserState.url.isEmpty
-                              ? Icons.search
-                              : (isHttps
-                                    ? Icons.shield_rounded
-                                    : Icons.shield_outlined),
-                          size: 18,
-                          color: browserState.url.isEmpty
-                              ? theme.colorScheme.onSurfaceVariant
-                              : (isHttps
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.error),
-                        ),
-                      ],
+                    child: Icon(
+                      browserState.url.isEmpty
+                          ? Icons.search_rounded
+                          : (isHttps
+                                ? Icons.lock_rounded
+                                : Icons.lock_open_rounded),
+                      size: 18,
+                      color: browserState.url.isEmpty
+                          ? theme.colorScheme.onSurfaceVariant
+                          : (isHttps
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.error),
                     ),
                   ),
                 ),
+                const SizedBox(width: 4),
                 Expanded(
                   child: TextField(
                     controller: _textController,
@@ -134,24 +147,29 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                     keyboardType: TextInputType.url,
                     autocorrect: false,
                     onChanged: (text) => setState(() {}),
-                    style: theme.textTheme.bodyMedium?.copyWith(fontSize: 14),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontSize: 14,
+                      fontWeight: _isEditing
+                          ? FontWeight.normal
+                          : FontWeight.w600,
+                    ),
                     decoration: InputDecoration(
                       hintText: l10n?.selectLanguage != null
-                          ? 'Search or enter address'
-                          : 'Search or enter URL',
+                          ? 'Search or type URL'
+                          : 'Search or enter address',
                       hintStyle: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant.withAlpha(
-                          150,
+                        color: theme.colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.6,
                         ),
                         fontSize: 14,
                       ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
                     ),
                     onSubmitted: _submit,
                   ),
                 ),
-                // Axom AI Assistant Trigger Icon
+                // Axom AI Assistant Sparkle Button
                 if (browserState.url.isNotEmpty && !_isEditing)
                   IconButton(
                     icon: const Icon(Icons.auto_awesome_rounded, size: 20),
@@ -173,8 +191,10 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                 if (browserState.url.isNotEmpty && !_isEditing)
                   IconButton(
                     icon: Icon(
-                      isBookmarked ? Icons.star : Icons.star_border,
-                      size: 20,
+                      isBookmarked
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded,
+                      size: 21,
                       color: isBookmarked ? Colors.amber : null,
                     ),
                     tooltip: isBookmarked ? 'Bookmarked' : 'Add Bookmark',
@@ -199,7 +219,7 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                   ),
                 if (_isEditing && _textController.text.isNotEmpty)
                   IconButton(
-                    icon: const Icon(Icons.close, size: 18),
+                    icon: const Icon(Icons.cancel_rounded, size: 18),
                     onPressed: () {
                       _textController.clear();
                       setState(() {});
@@ -207,15 +227,15 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                   )
                 else if (browserState.isLoading)
                   IconButton(
-                    icon: const Icon(Icons.close, size: 20),
+                    icon: const Icon(Icons.close_rounded, size: 20),
                     tooltip: 'Stop',
                     onPressed: () => ref
                         .read(browserControllerProvider.notifier)
                         .stopLoading(),
                   )
-                else
+                else if (browserState.url.isNotEmpty)
                   IconButton(
-                    icon: const Icon(Icons.refresh, size: 20),
+                    icon: const Icon(Icons.refresh_rounded, size: 20),
                     tooltip: 'Reload',
                     onPressed: () =>
                         ref.read(browserControllerProvider.notifier).reload(),

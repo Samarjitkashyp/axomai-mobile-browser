@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:axomai_browser_mobile/features/home/controllers/home_feed_controller.dart';
 import 'package:axomai_browser_mobile/features/home/domain/quick_link.dart';
 
-/// Grid widget for quick shortcuts with custom add and remove support.
+/// Chrome & JioSphere style Top Sites / Quick Shortcuts Grid.
 class QuickLinksGrid extends ConsumerWidget {
   final void Function(String url) onOpenUrl;
 
@@ -16,38 +16,64 @@ class QuickLinksGrid extends ConsumerWidget {
     final links = homeState.quickLinks;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Quick Access',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Top Sites',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add_rounded, size: 20),
-                tooltip: 'Add Shortcut',
-                onPressed: () => _showAddShortcutDialog(context, ref),
-              ),
-            ],
+                InkWell(
+                  onTap: () => _showAddShortcutDialog(context, ref),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.add_circle_outline_rounded,
+                          size: 16,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Add',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: links.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.85,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.82,
             ),
             itemBuilder: (context, index) {
               final link = links[index];
@@ -165,11 +191,34 @@ class _QuickLinkTile extends StatelessWidget {
     required this.onLongPress,
   });
 
+  IconData _getIconForLink(String title, String url) {
+    final lowerTitle = title.toLowerCase();
+    final lowerUrl = url.toLowerCase();
+    if (lowerTitle.contains('google') || lowerUrl.contains('google')) {
+      return Icons.search_rounded;
+    }
+    if (lowerTitle.contains('youtube') || lowerUrl.contains('youtube')) {
+      return Icons.play_arrow_rounded;
+    }
+    if (lowerTitle.contains('assam') || lowerUrl.contains('assam.gov')) {
+      return Icons.account_balance_rounded;
+    }
+    if (lowerTitle.contains('wiki') || lowerUrl.contains('wikipedia')) {
+      return Icons.menu_book_rounded;
+    }
+    if (lowerTitle.contains('news') || lowerUrl.contains('sentinel')) {
+      return Icons.newspaper_rounded;
+    }
+    if (lowerTitle.contains('pratidin')) {
+      return Icons.article_rounded;
+    }
+    return Icons.language_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final letter =
-        link.iconLetter ?? (link.title.isNotEmpty ? link.title[0] : '•');
+    final iconData = _getIconForLink(link.title, link.url);
 
     return InkWell(
       onTap: onTap,
@@ -179,34 +228,27 @@ class _QuickLinkTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  theme.colorScheme.primaryContainer,
-                  theme.colorScheme.surfaceContainerHighest,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+              color: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.8,
               ),
               shape: BoxShape.circle,
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: theme.colorScheme.shadow.withValues(alpha: 0.08),
+                  color: theme.colorScheme.shadow.withValues(alpha: 0.05),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Center(
-              child: Text(
-                letter,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
+              child: Icon(iconData, color: theme.colorScheme.primary, size: 24),
             ),
           ),
           const SizedBox(height: 6),
@@ -215,8 +257,9 @@ class _QuickLinkTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w500,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
             ),
           ),
         ],

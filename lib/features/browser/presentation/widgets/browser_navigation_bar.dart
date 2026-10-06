@@ -5,7 +5,7 @@ import 'package:axomai_browser_mobile/features/browser/controllers/browser_contr
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/page_menu_sheet.dart';
 import 'package:axomai_browser_mobile/features/tabs/controllers/tabs_controller.dart';
 
-/// Bottom navigation toolbar for essential browser controls, tabs, and library.
+/// Chrome & JioSphere style Bottom Navigation Toolbar.
 class BrowserNavigationBar extends ConsumerWidget {
   const BrowserNavigationBar({super.key});
 
@@ -24,59 +24,73 @@ class BrowserNavigationBar extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: isIncognito
-            ? const Color(0xFF14141C)
+            ? const Color(0xFF13131A)
             : theme.colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: theme.colorScheme.outlineVariant.withAlpha(80),
-            width: 0.8,
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+            width: 1.0,
           ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 48,
+          height: 52,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
+              // Back Navigation
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 tooltip: 'Back',
                 onPressed: browserState.canGoBack
                     ? () => controller.goBack()
                     : null,
               ),
+              // Forward Navigation
               IconButton(
-                icon: const Icon(Icons.arrow_forward_ios, size: 18),
+                icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
                 tooltip: 'Forward',
                 onPressed: browserState.canGoForward
                     ? () => controller.goForward()
                     : null,
               ),
-              // Tab Switcher Button
+              // Home / New Tab Button
+              IconButton(
+                icon: const Icon(Icons.home_rounded, size: 24),
+                tooltip: 'Home',
+                onPressed: () => controller.goHome(),
+              ),
+              // Chrome-Style Tab Counter Badge
               IconButton(
                 onPressed: () => context.push('/tabs'),
                 tooltip: 'Tabs ($tabCount)',
                 icon: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
+                  width: 26,
+                  height: 26,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(7),
                     border: Border.all(
                       color: isIncognito
                           ? Colors.purpleAccent
                           : theme.colorScheme.primary,
-                      width: 1.8,
+                      width: 2.0,
                     ),
                   ),
                   child: Text(
-                    isIncognito ? '$tabCount' : '$tabCount',
+                    '$tabCount',
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
                       color: isIncognito
                           ? Colors.purpleAccent
                           : theme.colorScheme.primary,
@@ -84,20 +98,15 @@ class BrowserNavigationBar extends ConsumerWidget {
                   ),
                 ),
               ),
+              // Library / Bookmarks
               IconButton(
-                icon: const Icon(Icons.collections_bookmark_outlined, size: 20),
+                icon: const Icon(Icons.collections_bookmark_outlined, size: 21),
                 tooltip: 'Library',
                 onPressed: () => context.push('/library'),
               ),
+              // 3-Dots More Menu
               IconButton(
-                icon: const Icon(Icons.share_outlined, size: 20),
-                tooltip: 'Share',
-                onPressed: browserState.url.isNotEmpty
-                    ? () => controller.shareCurrentPage()
-                    : null,
-              ),
-              IconButton(
-                icon: const Icon(Icons.more_vert_rounded, size: 22),
+                icon: const Icon(Icons.more_vert_rounded, size: 23),
                 tooltip: 'More Options',
                 onPressed: () {
                   showModalBottomSheet<void>(
@@ -105,7 +114,7 @@ class BrowserNavigationBar extends ConsumerWidget {
                     isScrollControlled: true,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(24),
+                        top: Radius.circular(28),
                       ),
                     ),
                     builder: (ctx) => const PageMenuSheet(),
