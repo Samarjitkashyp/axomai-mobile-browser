@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:axomai_browser_mobile/features/browser/controllers/browser_controller.dart';
 import 'package:axomai_browser_mobile/features/library/controllers/bookmarks_controller.dart';
+import 'package:axomai_browser_mobile/features/privacy/presentation/widgets/privacy_shield_sheet.dart';
 import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
 
 /// Top Address / Omnibox bar supporting search or direct URL navigation.
@@ -50,49 +51,6 @@ class _AddressBarState extends ConsumerState<AddressBar> {
     ref.read(browserControllerProvider.notifier).loadUrl(value);
   }
 
-  void _showSecurityDialog(BuildContext context, bool isSecure, String url) {
-    final theme = Theme.of(context);
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        icon: Icon(
-          isSecure ? Icons.lock : Icons.lock_open,
-          color: isSecure ? theme.colorScheme.primary : theme.colorScheme.error,
-          size: 32,
-        ),
-        title: Text(
-          isSecure ? 'Connection is Secure' : 'Connection is Not Secure',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              isSecure
-                  ? 'Your information (passwords, cookies, messages) is private when sent to this site.'
-                  : 'You should not enter any sensitive information on this site because it could be intercepted.',
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 12),
-            SelectableText(
-              url,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final browserState = ref.watch(browserControllerProvider);
@@ -129,26 +87,37 @@ class _AddressBarState extends ConsumerState<AddressBar> {
             const SizedBox(width: 8),
             GestureDetector(
               onTap: browserState.url.isNotEmpty
-                  ? () => _showSecurityDialog(
-                      context,
-                      browserState.isSecure,
-                      browserState.url,
+                  ? () => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(24),
+                        ),
+                      ),
+                      builder: (ctx) =>
+                          PrivacyShieldSheet(currentUrl: browserState.url),
                     )
                   : null,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: Icon(
-                  isHttps
-                      ? Icons.lock
-                      : (browserState.url.isEmpty
-                            ? Icons.search
-                            : Icons.lock_open),
-                  size: 18,
-                  color: isHttps
-                      ? theme.colorScheme.primary
-                      : (browserState.url.isEmpty
-                            ? theme.colorScheme.onSurfaceVariant
-                            : theme.colorScheme.error),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      browserState.url.isEmpty
+                          ? Icons.search
+                          : (isHttps
+                                ? Icons.shield_rounded
+                                : Icons.shield_outlined),
+                      size: 18,
+                      color: browserState.url.isEmpty
+                          ? theme.colorScheme.onSurfaceVariant
+                          : (isHttps
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.error),
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -6,6 +6,8 @@ import 'package:axomai_browser_mobile/core/theme/app_theme_type.dart';
 import 'package:axomai_browser_mobile/core/theme/theme_controller.dart';
 import 'package:axomai_browser_mobile/features/browser/controllers/search_engine_controller.dart';
 import 'package:axomai_browser_mobile/features/browser/domain/search_engine.dart';
+import 'package:axomai_browser_mobile/features/privacy/controllers/privacy_controller.dart';
+import 'package:axomai_browser_mobile/features/privacy/presentation/widgets/clear_data_dialog.dart';
 import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
 
 /// Settings screen allowing theme, language, and search engine customization.
@@ -53,6 +55,14 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           _buildLanguageSelector(context, ref, currentLocale),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            theme,
+            Icons.shield_outlined,
+            'Privacy & Security',
+          ),
+          const SizedBox(height: 12),
+          _buildPrivacyControls(context, ref),
           const SizedBox(height: 24),
           _buildSectionHeader(
             theme,
@@ -240,6 +250,65 @@ class SettingsScreen extends ConsumerWidget {
             },
           );
         }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildPrivacyControls(BuildContext context, WidgetRef ref) {
+    final privacyState = ref.watch(privacyControllerProvider);
+    final privacyNotifier = ref.read(privacyControllerProvider.notifier);
+
+    return Card(
+      child: Column(
+        children: [
+          SwitchListTile.adaptive(
+            title: const Text('Block Advertisements'),
+            subtitle: const Text('Block known advertising networks'),
+            value: privacyState.settings.adBlockEnabled,
+            onChanged: (val) => privacyNotifier.toggleAdBlock(val),
+          ),
+          SwitchListTile.adaptive(
+            title: const Text('Block Tracking Telemetry'),
+            subtitle: const Text('Prevent behavioural tracking and analytics'),
+            value: privacyState.settings.trackerBlockEnabled,
+            onChanged: (val) => privacyNotifier.toggleTrackerBlock(val),
+          ),
+          SwitchListTile.adaptive(
+            title: const Text('HTTPS-Only Mode'),
+            subtitle: const Text(
+              'Automatically upgrade all connections to HTTPS',
+            ),
+            value: privacyState.settings.httpsOnlyMode,
+            onChanged: (val) => privacyNotifier.toggleHttpsOnly(val),
+          ),
+          SwitchListTile.adaptive(
+            title: const Text('Block Third-Party Cookies'),
+            subtitle: const Text('Stop cross-site cookie tracking'),
+            value: privacyState.settings.blockThirdPartyCookies,
+            onChanged: (val) => privacyNotifier.toggleThirdPartyCookies(val),
+          ),
+          SwitchListTile.adaptive(
+            title: const Text('Block Pop-up Windows'),
+            subtitle: const Text('Prevent unwanted intrusive popups'),
+            value: privacyState.settings.blockPopups,
+            onChanged: (val) => privacyNotifier.togglePopups(val),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
+            title: const Text(
+              'Clear Browsing Data',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+            subtitle: const Text('Delete history, cookies, and cache'),
+            onTap: () {
+              showDialog<void>(
+                context: context,
+                builder: (ctx) => const ClearDataDialog(),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

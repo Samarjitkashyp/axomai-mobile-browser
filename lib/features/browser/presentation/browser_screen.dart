@@ -9,6 +9,8 @@ import 'package:axomai_browser_mobile/features/browser/presentation/widgets/brow
 import 'package:axomai_browser_mobile/features/browser/presentation/widgets/find_in_page_bar.dart';
 import 'package:axomai_browser_mobile/features/home/presentation/new_tab_view.dart';
 import 'package:axomai_browser_mobile/features/library/controllers/history_controller.dart';
+import 'package:axomai_browser_mobile/features/privacy/controllers/privacy_controller.dart';
+import 'package:axomai_browser_mobile/features/privacy/domain/privacy_settings.dart';
 import 'package:axomai_browser_mobile/features/tabs/controllers/tabs_controller.dart';
 import 'package:axomai_browser_mobile/l10n/app_localizations.dart';
 
@@ -24,7 +26,10 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
   FindInteractionController? _findInteractionController;
   String? _lastLoadedTabId;
 
-  InAppWebViewSettings _buildSettings(bool isIncognito) {
+  InAppWebViewSettings _buildSettings(
+    bool isIncognito,
+    PrivacySettings privacy,
+  ) {
     return InAppWebViewSettings(
       isInspectable: kDebugMode,
       mediaPlaybackRequiresUserGesture: false,
@@ -35,6 +40,9 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
       displayZoomControls: false,
       incognito: isIncognito,
       cacheEnabled: !isIncognito,
+      javaScriptCanOpenWindowsAutomatically: !privacy.blockPopups,
+      thirdPartyCookiesEnabled: !privacy.blockThirdPartyCookies,
+      javaScriptEnabled: privacy.javaScriptEnabled,
     );
   }
 
@@ -42,6 +50,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
   Widget build(BuildContext context) {
     final browserState = ref.watch(browserControllerProvider);
     final tabsState = ref.watch(tabsControllerProvider);
+    final privacyState = ref.watch(privacyControllerProvider);
     final browserNotifier = ref.read(browserControllerProvider.notifier);
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
@@ -86,7 +95,11 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
               Expanded(
                 child: Stack(
                   children: [
-                    _buildWebView(browserNotifier, tabsState.isIncognitoMode),
+                    _buildWebView(
+                      browserNotifier,
+                      tabsState.isIncognitoMode,
+                      privacyState.settings,
+                    ),
                     if (browserState.url.isEmpty ||
                         browserState.url == 'about:blank')
                       _buildStartPage(context, theme, l10n, browserNotifier),
@@ -101,7 +114,11 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
     );
   }
 
-  Widget _buildWebView(BrowserController controller, bool isIncognito) {
+  Widget _buildWebView(
+    BrowserController controller,
+    bool isIncognito,
+    PrivacySettings privacy,
+  ) {
     if (InAppWebViewPlatform.instance == null) {
       return Container(
         color: Colors.transparent,
@@ -111,7 +128,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
     }
 
     return InAppWebView(
-      initialSettings: _buildSettings(isIncognito),
+      initialSettings: _buildSettings(isIncognito, privacy),
       initialUrlRequest: URLRequest(url: WebUri(AppConstants.defaultHomePage)),
       findInteractionController: _findInteractionController,
       onWebViewCreated: (webController) {
@@ -133,7 +150,46 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
         );
         controller.setFindInteractionController(_findInteractionController);
       },
+      shouldInterceptRequest: (webController, request) async {
+        final urlString = request.url.toString();
+        final privacyNotifier = ref.read(privacyControllerProvider.notifier);
+        final blocker = ref.read(contentBlockerServiceProvider);
+
+        if (!privacyNotifier.isOriginWhitelisted(urlString) &&
+            blocker.shouldBlockUrl(
+              urlString,
+              adBlockEnabled: privacy.adBlockEnabled,
+              trackerBlockEnabled: privacy.trackerBlockEnabled,
+            )) {
+          privacyNotifier.recordBlockedRequest();
+          return WebResourceResponse(
+            contentType: 'text/plain',
+            data: Uint8List(0),
+            statusCode: 200,
+            reasonPhrase: 'OK',
+          );
+        }
+        return null;
+      },
+      onPermissionRequest: (webController, request) async {
+        return PermissionResponse(
+          resources: request.resources,
+          action: PermissionResponseAction.GRANT,
+        );
+      },
       onLoadStart: (webController, url) {
+        ref.read(privacyControllerProvider.notifier).resetPageBlockedCount();
+
+        // HTTPS-Only Mode upgrade
+        if (privacy.httpsOnlyMode &&
+            url != null &&
+            url.scheme.toLowerCase() == 'http') {
+          final upgraded =
+              'https://${url.host}${url.path}${url.hasQuery ? '?${url.query}' : ''}';
+          webController.loadUrl(urlRequest: URLRequest(url: WebUri(upgraded)));
+          return;
+        }
+
         controller.onUrlChanged(url);
         _syncTabUrlAndTitle(url?.toString(), null);
       },
