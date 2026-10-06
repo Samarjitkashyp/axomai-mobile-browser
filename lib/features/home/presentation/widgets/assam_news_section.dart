@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:axomai_browser_mobile/features/home/controllers/home_feed_controller.dart';
 import 'package:axomai_browser_mobile/features/home/domain/news_article.dart';
 
-/// News section presenting latest Assam & Northeast headlines with direct reading links.
+/// News section presenting top 5-6 Assam & Northeast headlines with image thumbnails.
 class AssamNewsSection extends ConsumerWidget {
   final void Function(String url) onOpenArticle;
 
@@ -13,7 +13,8 @@ class AssamNewsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final homeState = ref.watch(homeFeedProvider);
-    final articles = homeState.articles;
+    // Limit to top 5-6 news items
+    final articles = homeState.articles.take(6).toList();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -32,9 +33,10 @@ class AssamNewsSection extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Assam & Northeast Highlights',
+                    'Assam Highlights',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ],
@@ -44,6 +46,14 @@ class AssamNewsSection extends ConsumerWidget {
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                Text(
+                  'Top Stories',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
             ],
           ),
@@ -71,7 +81,7 @@ class AssamNewsSection extends ConsumerWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: articles.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 10),
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final article = articles[index];
                 return _NewsArticleCard(
@@ -95,6 +105,7 @@ class _NewsArticleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasImage = article.imageUrl != null && article.imageUrl!.isNotEmpty;
 
     return Material(
       color: theme.colorScheme.surfaceContainerLow,
@@ -104,94 +115,130 @@ class _NewsArticleCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
+          padding: const EdgeInsets.all(12),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
+              // Left Column: Source, Title, Category
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          article.source,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (article.pubDate != null) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            '• ${_formatDate(article.pubDate!)}',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      article.source,
-                      maxLines: 1,
+                    const SizedBox(height: 6),
+                    Text(
+                      article.title,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
+                        fontSize: 14.5,
+                        height: 1.35,
                       ),
                     ),
-                  ),
-                  if (article.category != null &&
-                      article.category!.isNotEmpty) ...[
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Container(
+                    if (article.category != null &&
+                        article.category!.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
+                          horizontal: 6,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(8),
+                          color: theme.colorScheme.secondaryContainer
+                              .withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           article.category!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.labelSmall?.copyWith(
+                            fontSize: 10,
                             color: theme.colorScheme.onSecondaryContainer,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
-                  const SizedBox(width: 8),
-                  if (article.pubDate != null)
-                    Expanded(
-                      child: Text(
-                        _formatDate(article.pubDate!),
-                        textAlign: TextAlign.end,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                article.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  height: 1.3,
                 ),
               ),
-              if (article.description.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                Text(
-                  article.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    height: 1.3,
-                  ),
+              const SizedBox(width: 12),
+              // Right: Thumbnail Image
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 84,
+                  height: 84,
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  child: hasImage
+                      ? Image.network(
+                          article.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) =>
+                              _buildFallbackThumbnail(theme),
+                          loadingBuilder: (ctx, child, progress) {
+                            if (progress == null) return child;
+                            return Center(
+                              child: SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  value: progress.expectedTotalBytes != null
+                                      ? progress.cumulativeBytesLoaded /
+                                            progress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : _buildFallbackThumbnail(theme),
                 ),
-              ],
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFallbackThumbnail(ThemeData theme) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primaryContainer.withValues(alpha: 0.7),
+            theme.colorScheme.surfaceContainerHighest,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.article_rounded,
+          color: theme.colorScheme.primary,
+          size: 28,
         ),
       ),
     );

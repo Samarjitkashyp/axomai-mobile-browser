@@ -8,6 +8,7 @@ class NewsArticle {
   final String description;
   final String? pubDate;
   final String? category;
+  final String? imageUrl;
 
   const NewsArticle({
     required this.title,
@@ -16,6 +17,7 @@ class NewsArticle {
     required this.description,
     this.pubDate,
     this.category,
+    this.imageUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +28,7 @@ class NewsArticle {
       'description': description,
       'pubDate': pubDate,
       'category': category,
+      'imageUrl': imageUrl,
     };
   }
 
@@ -37,6 +40,7 @@ class NewsArticle {
       description: map['description'] as String? ?? '',
       pubDate: map['pubDate'] as String?,
       category: map['category'] as String?,
+      imageUrl: map['imageUrl'] as String?,
     );
   }
 

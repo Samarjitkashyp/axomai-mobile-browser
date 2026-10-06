@@ -54,9 +54,9 @@ class NewsFeedService {
       for (final item in items) {
         final title = item.findElements('title').firstOrNull?.innerText.trim();
         final link = item.findElements('link').firstOrNull?.innerText.trim();
-        final description = _cleanHtml(
-          item.findElements('description').firstOrNull?.innerText ?? '',
-        );
+        final rawDesc =
+            item.findElements('description').firstOrNull?.innerText ?? '';
+        final description = _cleanHtml(rawDesc);
         final pubDate = item
             .findElements('pubDate')
             .firstOrNull
@@ -68,6 +68,22 @@ class NewsFeedService {
             ?.innerText
             .trim();
 
+        // Extract image from enclosure or media:content or img tag
+        String? imageUrl = item
+            .findElements('enclosure')
+            .firstOrNull
+            ?.getAttribute('url');
+        imageUrl ??= item
+            .findElements('media:content')
+            .firstOrNull
+            ?.getAttribute('url');
+        if (imageUrl == null || imageUrl.isEmpty) {
+          final imgMatch = RegExp(
+            r'<img[^>]+src="([^">]+)"',
+          ).firstMatch(rawDesc);
+          imageUrl = imgMatch?.group(1);
+        }
+
         if (title != null && link != null && title.isNotEmpty) {
           articles.add(
             NewsArticle(
@@ -77,6 +93,7 @@ class NewsFeedService {
               description: description,
               pubDate: pubDate,
               category: category,
+              imageUrl: imageUrl,
             ),
           );
         }
@@ -123,8 +140,10 @@ class NewsFeedService {
       source: 'Assam News',
       description:
           'Panbazar riverfront revitalization highlights traditional Assamese crafts and historic maritime traditions.',
-      pubDate: 'Today',
+      pubDate: '2 hours ago',
       category: 'Culture',
+      imageUrl:
+          'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=400&q=80',
     ),
     NewsArticle(
       title: 'Kaziranga National Park reports healthy rhino population surge',
@@ -132,8 +151,10 @@ class NewsFeedService {
       source: 'Kaziranga Wildlife',
       description:
           'Conservation teams and smart camera surveillance ensure peaceful habitat for Assam one-horned rhinos.',
-      pubDate: 'Today',
-      category: 'Environment',
+      pubDate: '4 hours ago',
+      category: 'Wildlife',
+      imageUrl:
+          'https://images.unsplash.com/photo-1575550959106-5a7defe28b56?w=400&q=80',
     ),
     NewsArticle(
       title: 'Guwahati tech corridor expands with new startup initiatives',
@@ -141,8 +162,10 @@ class NewsFeedService {
       source: 'Assam Tech',
       description:
           'Northeast digital innovation ecosystem welcomes cutting-edge software and green technology enterprises.',
-      pubDate: 'Yesterday',
+      pubDate: '6 hours ago',
       category: 'Technology',
+      imageUrl:
+          'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80',
     ),
     NewsArticle(
       title:
@@ -151,8 +174,33 @@ class NewsFeedService {
       source: 'Assam Events',
       description:
           'Villages and towns celebrate with Meji bonfires, Pitha making, and vibrant community sports.',
-      pubDate: 'Recent',
+      pubDate: 'Today',
       category: 'Festivals',
+      imageUrl:
+          'https://images.unsplash.com/photo-1532375810709-75b1da00537c?w=400&q=80',
+    ),
+    NewsArticle(
+      title: 'Assam Tea gardens embrace organic cultivation and global exports',
+      link: 'https://assamtribune.com',
+      source: 'Assam Tribune',
+      description:
+          'High quality orthodox tea production reaches record demand in European and Asian beverage markets.',
+      pubDate: 'Yesterday',
+      category: 'Economy',
+      imageUrl:
+          'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=400&q=80',
+    ),
+    NewsArticle(
+      title:
+          'Majuli Island river arts project gains UNESCO international acclaim',
+      link: 'https://assamtribune.com',
+      source: 'Sentinel Assam',
+      description:
+          'Satras preserve ancient mask-making and neo-Vaishnavite dance forms on the world largest river island.',
+      pubDate: 'Yesterday',
+      category: 'Heritage',
+      imageUrl:
+          'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&q=80',
     ),
   ];
 }
