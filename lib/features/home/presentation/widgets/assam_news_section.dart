@@ -24,24 +24,31 @@ class AssamNewsSection extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.newspaper_rounded,
-                    size: 20,
-                    color: Color(0xFF10B981),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Assam Highlights',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.2,
-                      color: Colors.white,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.newspaper_rounded,
+                      size: 20,
+                      color: Color(0xFF10B981),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Assam Highlights',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.2,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               if (homeState.isLoading)
                 const SizedBox(
                   width: 16,
@@ -156,21 +163,37 @@ class _NewsArticleCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            article.source,
-                            style: const TextStyle(
-                              color: Color(0xFF34D399),
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11.5,
+                          Flexible(
+                            child: Text(
+                              article.source,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF34D399),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11.5,
+                              ),
                             ),
                           ),
                           if (article.pubDate != null) ...[
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 4),
                             Text(
-                              '• ${_formatDate(article.pubDate!)}',
+                              '•',
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.6),
                                 fontSize: 11,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                _formatDate(article.pubDate!),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  fontSize: 11,
+                                ),
                               ),
                             ),
                           ],
@@ -204,6 +227,8 @@ class _NewsArticleCard extends StatelessWidget {
                           ),
                           child: Text(
                             article.category!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 10,
                               color: Color(0xFFFBBF24),
@@ -280,9 +305,10 @@ class _NewsArticleCard extends StatelessWidget {
   }
 
   String _formatDate(String rawDate) {
-    if (rawDate.length > 16) {
-      return rawDate.substring(0, 16);
+    final clean = rawDate.trim();
+    if (clean.length > 16) {
+      return clean.substring(0, 16).trim();
     }
-    return rawDate;
+    return clean;
   }
 }
